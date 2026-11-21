@@ -52,3 +52,12 @@ export const loginUser = async (req, res) => {
     token,
   });
 };
+
+export const getUserInfo = async (req, res) => {
+  const { username, email } = req.user;
+
+  res.status(200).json({
+    username,
+    email,
+  });
+};
