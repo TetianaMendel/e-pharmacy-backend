@@ -1,4 +1,6 @@
 import { Product } from '../models/product.js';
+import createHttpError from 'http-errors';
+import mongoose from 'mongoose';
 
 export const getProducts = async (req, res, next) => {
   try {
@@ -36,4 +38,20 @@ export const getProducts = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const getProductById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.isValidObjectId(id)) {
+    throw createHttpError(400, 'Invalid product ID');
+  }
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw createHttpError(404, 'Product not found');
+  }
+
+  res.status(200).json(product);
 };
