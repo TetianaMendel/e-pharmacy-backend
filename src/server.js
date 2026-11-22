@@ -7,6 +7,7 @@ import { connectMongoDB } from './db/connectMongoDB.js';
 import authRoutes from './routes/authRoutes.js';
 import { errors } from 'celebrate';
 import storeRoutes from './routes/storeRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -16,6 +17,7 @@ app.use(cors());
 
 app.use(authRoutes);
 app.use(storeRoutes);
+app.use(reviewRoutes);
 
 app.use(notFoundHandler);
 app.use(errors());
