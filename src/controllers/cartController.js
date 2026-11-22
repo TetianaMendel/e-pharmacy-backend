@@ -1,7 +1,9 @@
-import { Cart } from '../models/cart.js';
+
 import createHttpError from 'http-errors';
 import mongoose from 'mongoose';
+import { Cart } from '../models/cart.js';
 import { Product } from '../models/product.js';
+import { Order } from '../models/order.js';
 
 export const getCartItems = async (req, res) => {
   const userId = req.user._id;
@@ -12,10 +14,7 @@ export const getCartItems = async (req, res) => {
   );
 
   if (!cart) {
-    return res.status(200).json({
-      items: [],
-      total: 0,
-    });
+    return res.status(200).json({ items: [], total: 0 });
   }
 
   const items = cart.items.map((item) => ({
@@ -43,10 +42,7 @@ export const updateCart = async (req, res) => {
     throw createHttpError(400, 'Invalid product ID');
   }
 
-  if (
-    !Number.isInteger(quantity) ||
-    quantity < 0
-  ) {
+  if (!Number.isInteger(quantity) || quantity < 0) {
     throw createHttpError(400, 'Invalid quantity');
   }
 
@@ -90,5 +86,84 @@ export const updateCart = async (req, res) => {
 
   res.status(200).json({
     message: 'Cart updated successfully',
+  });
+};
+
+export const checkout = async (req, res) => {
+  const userId = req.user._id;
+
+  const { name, email, phone, address, paymentMethod } = req.body;
+
+  if (!name || !email || !phone || !address || !paymentMethod) {
+    throw createHttpError(400, 'All fields are required');
+  }
+
+  if (!['Cash On Delivery', 'Bank'].includes(paymentMethod)) {
+    throw createHttpError(400, 'Invalid payment method');
+  }
+
+  const cart = await Cart.findOne({ userId }).populate('items.productId');
+
+  if (!cart || cart.items.length === 0) {
+    throw createHttpError(400, 'Cart is empty');
+  }
+
+  const items = cart.items.map((item) => {
+    const product = item.productId;
+
+    if (!product) {
+      throw createHttpError(404, 'Product not found');
+    }
+
+    const price = Number(product.price);
+    const stock = Number(product.stock);
+
+    if (!Number.isFinite(price) || price < 0) {
+      throw createHttpError(400, 'Invalid product price');
+    }
+
+    if (
+      !Number.isFinite(stock) ||
+      !Number.isInteger(item.quantity) ||
+      item.quantity < 1 ||
+      item.quantity > stock
+    ) {
+      throw createHttpError(400, 'Not enough stock');
+    }
+
+    return {
+      productId: product._id,
+      name: product.name,
+      price,
+      quantity: item.quantity,
+    };
+  });
+
+  const total = Number(
+    items
+      .reduce((sum, item) => sum + item.price * item.quantity, 0)
+      .toFixed(2),
+  );
+
+  const order = await Order.create({
+    userId,
+    name,
+    email,
+    phone,
+    address,
+    paymentMethod,
+    items,
+    total,
+    status: 'Pending',
+  });
+
+  await Cart.updateOne(
+    { _id: cart._id },
+    { $set: { items: [] } },
+  );
+
+  res.status(201).json({
+    message: 'Order placed successfully',
+    order,
   });
 };
