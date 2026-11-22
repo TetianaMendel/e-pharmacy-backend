@@ -9,6 +9,7 @@ import { errors } from 'celebrate';
 import storeRoutes from './routes/storeRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import productRoutes from './routes/productRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -20,6 +21,7 @@ app.use(authRoutes);
 app.use(storeRoutes);
 app.use(reviewRoutes);
 app.use(productRoutes);
+app.use(cartRoutes);
 
 app.use(notFoundHandler);
 app.use(errors());
