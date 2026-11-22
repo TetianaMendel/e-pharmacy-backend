@@ -1,8 +1,12 @@
 import { Router } from 'express';
-import { getNearestStores } from '../controllers/storeController.js';
+import {
+  getNearestStores,
+  getStores,
+} from '../controllers/storeController.js';
 
 const router = Router();
 
 router.get('/api/stores/nearest', getNearestStores);
+router.get('/api/stores', getStores);
 
 export default router;
