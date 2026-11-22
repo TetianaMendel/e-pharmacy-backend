@@ -4,6 +4,7 @@ import {
   registerUser,
   loginUser,
   getUserInfo,
+  logoutUser,
 } from '../controllers/authController.js';
 import {
   registerUserSchema,
@@ -29,6 +30,12 @@ router.get(
   '/api/user/user-info',
   authenticate,
   getUserInfo,
+);
+
+router.get(
+  '/api/user/logout',
+  authenticate,
+  logoutUser,
 );
 
 export default router;
