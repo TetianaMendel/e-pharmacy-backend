@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { connectMongoDB } from './db/connectMongoDB.js';
 import authRoutes from './routes/authRoutes.js';
 import { errors } from 'celebrate';
+import storeRoutes from './routes/storeRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -14,12 +15,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use(authRoutes);
-
-app.get("/", (_req, res) => {
-  res.status(200).json({
-    message: "E-Pharmacy API is running",
-  });
-});
+app.use(storeRoutes);
 
 app.use(notFoundHandler);
 app.use(errors());
