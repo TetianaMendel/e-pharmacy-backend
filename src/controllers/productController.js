@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 export const getProducts = async (req, res, next) => {
   try {
-    const { search, category } = req.query;
+    const { search, category, discount } = req.query;
 
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = 12;
@@ -14,7 +14,9 @@ export const getProducts = async (req, res, next) => {
 
     if (search) {
       filter.name = {
-        $regex: String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        $regex: String(search)
+          .trim()
+          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
         $options: 'i',
       };
     }
@@ -23,8 +25,26 @@ export const getProducts = async (req, res, next) => {
       filter.category = category;
     }
 
+    if (discount !== undefined) {
+      if (
+        typeof discount !== 'string' ||
+        !/^\d+$/.test(discount) ||
+        Number(discount) > 100
+      ) {
+        throw createHttpError(
+          400,
+          'Discount must be an integer between 0 and 100'
+        );
+      }
+
+      filter.discount = Number(discount);
+    }
+
     const [products, total] = await Promise.all([
-      Product.find(filter).sort({ _id: 1 }).skip(skip).limit(limit),
+      Product.find(filter)
+        .sort({ _id: 1 })
+        .skip(skip)
+        .limit(limit),
       Product.countDocuments(filter),
     ]);
 
